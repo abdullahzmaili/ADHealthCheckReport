@@ -153,11 +153,11 @@ $Script:Recommendations = @{
 }
 
 $Script:RegistryChecks = @(
-    @{ Id='SEC-057'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft Credential Theft Mitigation Guide; MITRE T1003.001'; Wt=8; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='RunAsPPL'; Op='eq'; Expected=1; FailSev='High'; FailImpact=15; FailMsg='LSASS is NOT running as a Protected Process (RunAsPPL) on {DC}. Credential hashes in memory are exposed to dumping tools (e.g., Mimikatz).'; PassMsg='LSASS is running as a Protected Process (RunAsPPL=1) on {DC}.' }
-    @{ Id='SEC-059'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft KB2871997; MITRE T1021.001'; Wt=6; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='DisableRestrictedAdmin'; Op='eq'; Expected=0; FailSev='Medium'; FailImpact=10; FailMsg='Restricted Admin Mode for RDP is NOT enabled on {DC}. Admin credentials are cached on remote systems during RDP sessions.'; PassMsg='Restricted Admin Mode is enabled on {DC}.' }
-    @{ Id='SEC-060'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='CIS Benchmark 2.3.7.6; MITRE T1003.005'; Wt=6; HivePath='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'; Value='CachedLogonsCount'; Op='le'; Expected=2; Default=10; FailSev='Medium'; FailImpact=10; FailMsg='Cached credentials count on {DC} is {Actual} (default 10). Stored hashes can be extracted offline for Pass-the-Hash attacks.'; PassMsg='Cached credentials count on {DC} is {Actual}, limiting offline hash extraction.' }
-    @{ Id='SEC-061'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='CIS Benchmark 2.3.11; MITRE T1550.002 — Pass the Hash'; Wt=8; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='LmCompatibilityLevel'; Op='ge'; Expected=5; FailSev='High'; FailImpact=15; FailMsg='NTLM restrictions on {DC} are weak (LmCompatibilityLevel={Actual}). Environments allowing LM/NTLMv1 are highly vulnerable to Pass-the-Hash and relay attacks.'; PassMsg='NTLM restrictions on {DC} meet hardened baseline (LmCompatibilityLevel={Actual}).' }
-    @{ Id='SEC-062'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft NTLM Auditing Guide; CIS Benchmark 2.3.11.7-11'; Wt=5; HivePath='SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'; Value='AuditReceivingNTLMTraffic'; Op='ge'; Expected=1; FailSev='Medium'; FailImpact=8; FailMsg='NTLM authentication auditing is NOT enabled on {DC}. Without NTLM audit logs, Pass-the-Hash activity cannot be detected.'; PassMsg='NTLM auditing is enabled on {DC}.' }
+    @{ Id='SEC-057'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft Credential Theft Mitigation Guide; MITRE ATT&CK T1003.001 - OS Credential Dumping: LSASS Memory'; Wt=8; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='RunAsPPL'; Op='eq'; Expected=1; FailSev='High'; FailImpact=15; FailMsg='LSASS is NOT running as a Protected Process (RunAsPPL) on {DC}. Credential hashes in memory are exposed to dumping tools (e.g., Mimikatz).'; PassMsg='LSASS is running as a Protected Process (RunAsPPL=1) on {DC}.' }
+    @{ Id='SEC-059'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft KB2871997; MITRE ATT&CK T1021.001 - Remote Services: Remote Desktop Protocol; T1550.002 - Use Alternate Authentication Material: Pass the Hash'; Wt=6; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='DisableRestrictedAdmin'; Op='eq'; Expected=0; FailSev='Medium'; FailImpact=10; FailMsg='Restricted Admin Mode for RDP is NOT enabled on {DC}. Admin credentials are cached on remote systems during RDP sessions.'; PassMsg='Restricted Admin Mode is enabled on {DC}.' }
+    @{ Id='SEC-060'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='CIS Benchmark 2.3.7.6; MITRE ATT&CK T1003.005 - OS Credential Dumping: Cached Domain Credentials'; Wt=6; HivePath='SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'; Value='CachedLogonsCount'; Op='le'; Expected=2; Default=10; FailSev='Medium'; FailImpact=10; FailMsg='Cached credentials count on {DC} is {Actual} (default 10). Stored hashes can be extracted offline for Pass-the-Hash attacks.'; PassMsg='Cached credentials count on {DC} is {Actual}, limiting offline hash extraction.' }
+    @{ Id='SEC-061'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='CIS Benchmark 2.3.11; MITRE ATT&CK T1550.002 - Use Alternate Authentication Material: Pass the Hash'; Wt=8; HivePath='SYSTEM\CurrentControlSet\Control\Lsa'; Value='LmCompatibilityLevel'; Op='ge'; Expected=5; FailSev='High'; FailImpact=15; FailMsg='NTLM restrictions on {DC} are weak (LmCompatibilityLevel={Actual}). Environments allowing LM/NTLMv1 are highly vulnerable to Pass-the-Hash and relay attacks.'; PassMsg='NTLM restrictions on {DC} meet hardened baseline (LmCompatibilityLevel={Actual}).' }
+    @{ Id='SEC-062'; Cat='Security & Hardening'; Sub='Pass-the-Hash Mitigation'; Ref='Microsoft NTLM Auditing Guide; CIS Benchmark 2.3.11.7-11; MITRE ATT&CK T1557.001 - Adversary-in-the-Middle: Name Resolution Poisoning and SMB Relay'; Wt=5; HivePath='SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'; Value='AuditReceivingNTLMTraffic'; Op='ge'; Expected=1; FailSev='Medium'; FailImpact=8; FailMsg='NTLM authentication auditing is NOT enabled on {DC}. Without NTLM audit logs, Pass-the-Hash activity cannot be detected.'; PassMsg='NTLM auditing is enabled on {DC}.' }
 )
 
 #region Invoke-RegistrySecurityChecks
@@ -3837,7 +3837,7 @@ function Get-RemoteRegistryValueSafe {
 function Test-CredentialGuard {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'SEC-058'; $results = @()
-    $reference = 'Microsoft Credential Guard Documentation; MITRE T1003'
+    $reference = 'Microsoft Credential Guard Documentation; MITRE ATT&CK T1003.001 - OS Credential Dumping: LSASS Memory'
     foreach ($dc in $DomainControllers) {
         $dcName = $dc.HostName
         if (-not $dc.Reachable) { continue }
@@ -3861,7 +3861,7 @@ function Test-CredentialGuard {
 function Test-LocalAdminPasswordReuse {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'SEC-063'; $results = @()
-    $reference = 'Microsoft LAPS Documentation; MITRE T1078.003'
+    $reference = 'Microsoft LAPS Documentation; MITRE ATT&CK T1078.003 - Valid Accounts: Local Accounts'
     try {
         $lapsProps = @('ms-Mcs-AdmPwd','ms-Mcs-AdmPwdExpirationTime','ms-LAPS-Password','ms-LAPS-PasswordExpirationTime')
         $computers = Get-ADComputer -Filter "Enabled -eq '$true'" -Properties $lapsProps -Server $Domain -ResultPageSize 1000 -ErrorAction Stop
@@ -3890,7 +3890,7 @@ function Test-LocalAdminPasswordReuse {
 function Test-PrivilegedLogonExposure {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'SEC-064'; $results = @()
-    $reference = 'Microsoft Tier Model for AD; MITRE T1078.002; DISA STIG V-243480'
+    $reference = 'Microsoft Tier Model for AD; MITRE ATT&CK T1078.002 - Valid Accounts: Domain Accounts; DISA STIG V-243480'
     try {
         $privilegedGroups = @('Domain Admins', 'Enterprise Admins', 'Schema Admins', 'Administrators')
         $privilegedMembers = @()
@@ -3930,7 +3930,7 @@ function Test-PrivilegedLogonExposure {
 function Test-KrbtgtPasswordAge {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'SEC-065'; $results = @()
-    $reference = 'Microsoft Best Practices for KRBTGT Reset; MITRE T1558.001 — Golden Ticket'
+    $reference = 'Microsoft Best Practices for KRBTGT Reset; MITRE ATT&CK T1558.001 - Steal or Forge Kerberos Tickets: Golden Ticket'
     try {
         $krbtgt = Get-ADUser -Identity 'krbtgt' -Properties PasswordLastSet -Server $Domain -ErrorAction Stop
         if ($null -eq $krbtgt -or $null -eq $krbtgt.PasswordLastSet) {
@@ -3953,7 +3953,7 @@ function Test-KrbtgtPasswordAge {
 function Test-KerberoastingExposure {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'THREAT-001'; $results = @()
-    $reference = 'MITRE ATT&CK T1558.003 — Kerberoasting; CIS Benchmark'
+    $reference = 'MITRE ATT&CK T1558.003 - Steal or Forge Kerberos Tickets: Kerberoasting; CIS Benchmark'
     try {
         $spnUsers = Get-ADUser -Filter {ServicePrincipalName -like "*"} -Properties ServicePrincipalName, PasswordLastSet, Enabled, msDS-SupportedEncryptionTypes -Server $Domain -ResultPageSize 1000 -ErrorAction Stop |
             Where-Object { $_.Enabled -eq $true }
@@ -3982,7 +3982,7 @@ function Test-KerberoastingExposure {
 function Test-ASREPRoastingExposure {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'THREAT-002'; $results = @()
-    $reference = 'MITRE ATT&CK T1558.004 — AS-REP Roasting; CIS Benchmark'
+    $reference = 'MITRE ATT&CK T1558.004 - Steal or Forge Kerberos Tickets: AS-REP Roasting; CIS Benchmark'
     try {
         $asrepUsers = Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth, Enabled, MemberOf -Server $Domain -ResultPageSize 1000 -ErrorAction Stop |
             Where-Object { $_.Enabled -eq $true }
@@ -4005,7 +4005,7 @@ function Test-ASREPRoastingExposure {
 function Test-DCSyncPermissions {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'THREAT-007'; $results = @()
-    $reference = 'MITRE ATT&CK T1003.006 — DCSync; Microsoft Security Best Practices'
+    $reference = 'MITRE ATT&CK T1003.006 - OS Credential Dumping: DCSync; Microsoft Security Best Practices'
     try {
         $domainDN = (Get-ADDomain -Server $Domain -ErrorAction Stop).DistinguishedName
         $acl = Get-Acl "AD:\$domainDN" -ErrorAction Stop
@@ -4076,7 +4076,7 @@ function Test-AnonymousAccessRestrictions {
 function Test-ExcessiveACLPermissions {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'SEC-077'; $results = @()
-    $reference = 'Microsoft Active Directory Security Best Practices; MITRE ATT&CK T1222.001 — File and Directory Permissions Modification'
+    $reference = 'Microsoft Active Directory Security Best Practices; MITRE ATT&CK T1098 - Account Manipulation; T1484.001 - Domain or Tenant Policy Modification: Group Policy Modification'
     try {
         $domainDN = (Get-ADDomain -Server $Domain -ErrorAction Stop).DistinguishedName
         $criticalOUs = @($domainDN, "CN=Users,$domainDN", "OU=Domain Controllers,$domainDN", "CN=Computers,$domainDN")
@@ -4401,7 +4401,7 @@ function Test-LogRetentionAdequacy {
 function Test-PrivilegedGroupChangeAlerts {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'LOG-004'; $results = @()
-    $reference = 'MITRE ATT&CK T1098 — Account Manipulation; NIST SP 800-53 AU-12; CIS Controls v8 8.5'
+    $reference = 'MITRE ATT&CK T1098 - Account Manipulation; NIST SP 800-53 AU-12; CIS Controls v8 8.5'
     try {
         # Check if audit policy captures group membership changes (Event IDs 4728, 4729, 4732, 4733, 4756, 4757)
         $privilegedGroups = @('Domain Admins', 'Enterprise Admins', 'Schema Admins', 'Administrators', 'Account Operators', 'Backup Operators')
@@ -4455,7 +4455,7 @@ function Test-PrivilegedGroupChangeAlerts {
 function Test-PrivilegeEscalationPaths {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'THREAT-003'; $results = @()
-    $reference = 'MITRE ATT&CK TA0004 — Privilege Escalation; Microsoft Tier Model; BloodHound attack paths'
+    $reference = 'MITRE ATT&CK TA0004 (tactic) - Privilege Escalation; T1098 - Account Manipulation; T1078.002 - Valid Accounts: Domain Accounts; BloodHound attack paths'
     try {
         $domainDN = (Get-ADDomain -Server $Domain -ErrorAction Stop).DistinguishedName
         $escalationRisks = @()
@@ -4510,7 +4510,7 @@ function Test-PrivilegeEscalationPaths {
 function Test-SilverTicketRisk {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'THREAT-006'; $results = @()
-    $reference = 'MITRE ATT&CK T1558.002 — Silver Ticket; Microsoft guidance on machine account password rotation'
+    $reference = 'MITRE ATT&CK T1558.002 - Steal or Forge Kerberos Tickets: Silver Ticket; Microsoft guidance on machine account password rotation'
     try {
         # Silver Ticket risk: computer accounts with old passwords (default rotation = 30 days)
         $threshold = 60
@@ -4547,7 +4547,7 @@ function Test-SilverTicketRisk {
 function Test-NTLMUsageMonitoring {
     param([array]$DomainControllers, [string]$Domain, [string]$Forest)
     $checkId = 'IAM-006'; $results = @()
-    $reference = 'Microsoft — NTLM Blocking and Auditing; MITRE ATT&CK T1557 — LLMNR/NBT-NS Poisoning; CIS Benchmark'
+    $reference = 'Microsoft - NTLM Blocking and Auditing; MITRE ATT&CK T1557.001 - Adversary-in-the-Middle: Name Resolution Poisoning and SMB Relay; T1550.002 - Use Alternate Authentication Material: Pass the Hash; CIS Benchmark'
     foreach ($dc in $DomainControllers) {
         $dcName = if ($dc.HostName) { $dc.HostName } elseif ($dc.Name) { $dc.Name } else { "$dc" }
         try {
@@ -4976,19 +4976,17 @@ function Start-ADHealthCheck {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Active Directory Health Assessment &ndash; __TITLE_FOREST__</title>
   <style>
-:root{--ms-blue:#0f6cbd;--ms-blue-dark:#0b3b69;--header-dark:#111827;--surface:#ffffff;--surface-alt:#f5f7fb;--surface-muted:#eef2f7;--border:#dbe2ea;--text:#1f2937;--text-muted:#5f6a7d;--success:#107c10;--danger:#d13438;--warning:#ff8c00;--shadow:0 12px 32px rgba(15,23,42,0.08);--radius:18px;--ring-score:74;--sidebar-bg:#ffffff;--sidebar-border:#e7edf3;--sidebar-border-soft:#eef2f6;--sidebar-text:#475467;--sidebar-text-strong:#111827;--sidebar-muted:#98a2b3;--sidebar-hover:#f1f5f9;--sidebar-active-bg:#eef6ff;--sidebar-indicator:var(--ms-blue);--sidebar-shadow:0 18px 40px rgba(15,23,42,0.06)}
-*{box-sizing:border-box}html{scroll-behavior:smooth;background:#e8edf4}
-body{margin:0;font-family:"Inter","Segoe UI Variable","Segoe UI",Arial,Helvetica,sans-serif;color:var(--text);background:radial-gradient(circle at top right,rgba(15,108,189,0.12),transparent 26%),linear-gradient(180deg,#eef3f9 0%,#f7f9fc 240px,#eef2f7 100%)}
-a{color:var(--ms-blue);text-decoration:none}a:hover,a:focus{text-decoration:underline}
-code{padding:2px 6px;border-radius:6px;background:rgba(15,108,189,0.08);color:var(--ms-blue-dark);font-family:Consolas,"Courier New",monospace;font-size:0.95em}
+:root{--brand:#0f766e;--brand-dark:#134e4a;--header-dark:#111827;--surface:#ffffff;--surface-alt:#f5f7fb;--surface-muted:#eef2f7;--border:#dbe2ea;--text:#1f2937;--text-muted:#5f6a7d;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--shadow:0 12px 32px rgba(15,23,42,0.08);--radius:18px;--ring-score:74;--sidebar-bg:#ffffff;--sidebar-border:#e7edf3;--sidebar-border-soft:#eef2f6;--sidebar-text:#475467;--sidebar-text-strong:#111827;--sidebar-muted:#98a2b3;--sidebar-hover:#f1f5f9;--sidebar-active-bg:#eafaf6;--sidebar-indicator:var(--brand);--sidebar-shadow:0 18px 40px rgba(15,23,42,0.06)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;background:#eaeff1}
+body{margin:0;font-family:system-ui,-apple-system,"Inter","Helvetica Neue",Arial,Helvetica,sans-serif;color:var(--text);background:radial-gradient(circle at top right,rgba(15,118,110,0.12),transparent 26%),linear-gradient(180deg,#eef4f4 0%,#f8fafa 240px,#eef2f3 100%)}
+a{color:var(--brand);text-decoration:none}a:hover,a:focus{text-decoration:underline}
+code{padding:2px 6px;border-radius:6px;background:rgba(15,118,110,0.08);color:var(--brand-dark);font-family:Consolas,"Courier New",monospace;font-size:0.95em}
 .muted{color:var(--text-muted)}
-.topbar{background:linear-gradient(135deg,#0b1220 0%,#15233b 52%,#0f6cbd 140%);color:#fff;padding:22px 0;box-shadow:0 12px 28px rgba(11,18,32,0.28)}
+.topbar{background:linear-gradient(135deg,#101c22 0%,#17343a 52%,#0f766e 140%);color:#fff;padding:22px 0;box-shadow:0 12px 28px rgba(11,18,32,0.28)}
 .topbar-inner{width:min(1440px,calc(100% - 40px));margin:0 auto}
 .brand-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:16px}
-.brand-mark{display:grid;grid-template-columns:repeat(2,14px);gap:4px;padding:6px;border-radius:10px;background:rgba(255,255,255,0.08)}
-.brand-mark span{display:block;width:14px;height:14px;border-radius:3px}
-.brand-mark span:nth-child(1){background:#f25022}.brand-mark span:nth-child(2){background:#7fba00}.brand-mark span:nth-child(3){background:#00a4ef}.brand-mark span:nth-child(4){background:#ffb900}
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;min-width:46px;height:46px;padding:0 10px;border-radius:12px;background:linear-gradient(135deg,#0f766e 0%,#155e75 100%);color:#fff;font-size:15px;font-weight:800;letter-spacing:0.08em;box-shadow:0 6px 18px rgba(15,118,110,0.35)}
 .eyebrow{margin:0 0 6px;text-transform:uppercase;letter-spacing:0.08em;font-size:12px;font-weight:700;color:rgba(255,255,255,0.72)}
 .topbar h1{margin:0;font-size:clamp(22px,4vw,38px);font-weight:700}.topbar p{margin:6px 0 0;color:rgba(255,255,255,0.82);font-size:15px}
 .meta-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid rgba(255,255,255,0.16);border-radius:999px;background:rgba(255,255,255,0.08);font-size:13px;white-space:nowrap;color:#fff}
@@ -4999,8 +4997,7 @@ code{padding:2px 6px;border-radius:6px;background:rgba(15,108,189,0.08);color:va
 .sidebar-header{display:flex;align-items:center;gap:12px;padding:20px 20px 16px;border-bottom:1px solid var(--sidebar-border-soft)}
 .sidebar-logo{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;min-width:0}
 .sidebar-logo:hover,.sidebar-logo:focus{text-decoration:none}
-.sidebar-logo .brand-mark{grid-template-columns:repeat(2,10px);gap:3px;padding:5px;border-radius:8px;background:#f8fafc;border:1px solid var(--sidebar-border-soft);flex-shrink:0}
-.sidebar-logo .brand-mark span{width:10px;height:10px;border-radius:2px}
+.sidebar-logo .brand-mark{min-width:38px;height:38px;padding:0 8px;border-radius:10px;font-size:13px;box-shadow:none;flex-shrink:0}
 .sidebar-brand-copy{min-width:0}
 .sidebar-brand-kicker{margin:0 0 2px;font-size:11px;line-height:1.2;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--sidebar-muted)}
 .sidebar-brand-name{margin:0;font-size:17px;line-height:1.2;font-weight:700;letter-spacing:-0.02em;color:var(--sidebar-text-strong)}
@@ -5011,13 +5008,13 @@ code{padding:2px 6px;border-radius:6px;background:rgba(15,108,189,0.08);color:va
 .sidebar-menu{flex:1;min-height:0;overflow-y:auto;padding-right:4px;scrollbar-width:none;-ms-overflow-style:none}
 .sidebar-menu::-webkit-scrollbar,.sidebar::-webkit-scrollbar{width:0;height:0}
 .sidebar-toggle{display:none;position:fixed;top:16px;left:16px;z-index:1001;background:#fff;color:var(--sidebar-text-strong);border:1px solid var(--sidebar-border);border-radius:10px;padding:10px 14px;font-size:20px;cursor:pointer;box-shadow:0 10px 24px rgba(15,23,42,0.12);transition:background 0.15s,color 0.15s,border-color 0.15s}
-.sidebar-toggle:hover,.sidebar-toggle:focus{background:var(--sidebar-hover);color:var(--ms-blue);border-color:rgba(15,108,189,0.2);outline:none}
+.sidebar-toggle:hover,.sidebar-toggle:focus{background:var(--sidebar-hover);color:var(--brand);border-color:rgba(15,118,110,0.2);outline:none}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.32);z-index:999;backdrop-filter:blur(2px)}
 .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
 .sidebar-nav a,.sidebar-nav .sidebar-item{width:100%;border:none;background-color:transparent;color:var(--sidebar-text);padding:9px 14px;border-radius:10px;text-align:left;font:inherit;font-size:13px;font-weight:500;line-height:1.4;cursor:pointer;transition:background-color 0.15s,color 0.15s;text-decoration:none;display:flex;align-items:center;gap:10px;position:relative;min-height:38px}
 .sidebar-nav a::before,.sidebar-nav .sidebar-item::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:4px;border-radius:0 999px 999px 0;background:var(--sidebar-indicator);opacity:0;transform:scaleY(0.65);transition:opacity 0.15s,transform 0.15s}
-.sidebar-nav a:hover,.sidebar-nav a:focus,.sidebar-nav .sidebar-item:hover,.sidebar-nav .sidebar-item:focus{background-color:var(--sidebar-hover);color:var(--ms-blue);outline:none;text-decoration:none}
-.sidebar-nav a.active,.sidebar-nav .sidebar-item.active{color:var(--ms-blue);background-color:var(--sidebar-active-bg);font-weight:600}
+.sidebar-nav a:hover,.sidebar-nav a:focus,.sidebar-nav .sidebar-item:hover,.sidebar-nav .sidebar-item:focus{background-color:var(--sidebar-hover);color:var(--brand);outline:none;text-decoration:none}
+.sidebar-nav a.active,.sidebar-nav .sidebar-item.active{color:var(--brand);background-color:var(--sidebar-active-bg);font-weight:600}
 .sidebar-nav a.active::before,.sidebar-nav .sidebar-item.active::before{opacity:1;transform:scaleY(1)}
 .sidebar-footer{margin-top:auto;padding-top:4px}
 .panel{background:rgba(255,255,255,0.92);border:1px solid rgba(219,226,234,0.88);border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(10px);overflow:hidden}
@@ -5035,19 +5032,19 @@ code{padding:2px 6px;border-radius:6px;background:rgba(15,108,189,0.08);color:va
 .stat-card{padding:16px;border-radius:16px;background:#f8fafc;border:1px solid var(--border)}
 .stat-card .label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px}
 .stat-card .value{display:block;font-size:28px;font-weight:700}
-.stat-card.success .value{color:var(--success)}.stat-card.danger .value{color:var(--danger)}.stat-card.warning .value{color:var(--warning)}.stat-card.info .value{color:var(--ms-blue)}
+.stat-card.success .value{color:var(--success)}.stat-card.danger .value{color:var(--danger)}.stat-card.warning .value{color:var(--warning)}.stat-card.info .value{color:var(--brand)}
 .section-card{padding:24px 26px;overflow:hidden}
 .section-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
 .section-header p{margin:8px 0 0;color:var(--text-muted);line-height:1.6}
 .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .legend-item,.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600}
 .legend-item::before,.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0}
-.legend-item.success,.pill.success{color:var(--success);background:rgba(16,124,16,0.1)}
-.legend-item.danger,.pill.danger{color:var(--danger);background:rgba(209,52,56,0.1)}
-.legend-item.warning,.pill.warning{color:var(--warning);background:rgba(255,140,0,0.12)}
-.pill.info{color:var(--ms-blue);background:rgba(15,108,189,0.1)}
-.export-btn{background:rgba(15,108,189,0.1);color:#0f6cbd;border:1px solid #0f6cbd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.1s;white-space:nowrap}
-.export-btn:hover{background:rgba(15,108,189,0.2);transform:translateY(-1px)}.export-btn:active{transform:translateY(0)}
+.legend-item.success,.pill.success{color:var(--success);background:rgba(22,163,74,0.1)}
+.legend-item.danger,.pill.danger{color:var(--danger);background:rgba(220,38,38,0.1)}
+.legend-item.warning,.pill.warning{color:var(--warning);background:rgba(217,119,6,0.12)}
+.pill.info{color:var(--brand);background:rgba(15,118,110,0.1)}
+.export-btn{background:rgba(15,118,110,0.1);color:#0f766e;border:1px solid #0f766e;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.1s;white-space:nowrap}
+.export-btn:hover{background:rgba(15,118,110,0.2);transform:translateY(-1px)}.export-btn:active{transform:translateY(0)}
 .category-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
 .category-card{display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:18px;border:1px solid var(--border);background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);box-shadow:0 10px 26px rgba(15,23,42,0.06)}
 .category-card-title{font-weight:700;font-size:13px;color:var(--sidebar-text-strong)}
@@ -5076,7 +5073,7 @@ tbody tr:hover{background:#fbfdff}tbody tr:last-child td{border-bottom:none}
 .column-filter-row select{width:100%;padding:5px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);cursor:pointer}
 body[data-theme='dark'] .column-filter-row th{background:#1e293b}
 body[data-theme='dark'] .column-filter-row select{background:#1e293b;border-color:#334155;color:#e2e8f0}
-.evidence-link{color:#2563eb;text-decoration:none;font-weight:600;font-size:12px;white-space:nowrap}.evidence-link:hover{text-decoration:underline}
+.evidence-link{color:#0f766e;text-decoration:none;font-weight:600;font-size:12px;white-space:nowrap}.evidence-link:hover{text-decoration:underline}
 .evidence-modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center}
 .evidence-modal-overlay.active{display:flex}
 .evidence-modal{background:#fff;border-radius:16px;padding:28px 32px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
@@ -5085,13 +5082,13 @@ body[data-theme='dark'] .evidence-modal{background:#1e293b;color:#e2e8f0}
 .evidence-modal .evidence-label{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700;margin-bottom:6px}
 .evidence-modal .evidence-content{background:#f4f8fc;border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-word}
 body[data-theme='dark'] .evidence-modal .evidence-content{background:#0f172a}
-.evidence-modal .close-btn{display:inline-block;margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
-.evidence-modal .close-btn:hover{background:#1d4ed8}
+.evidence-modal .close-btn{display:inline-block;margin-top:12px;padding:8px 20px;background:#0f766e;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
+.evidence-modal .close-btn:hover{background:#115e59}
 .status-badge{display:inline-flex;align-items:center;gap:4px;border-radius:6px;font-size:12px;font-weight:700;padding:4px 10px;border:1px solid transparent;white-space:nowrap}
-.status-badge.status-pass{background:rgba(76,175,80,0.15);color:#4caf50;border-color:#4caf50}
-.status-badge.status-critical{background:rgba(239,83,80,0.15);color:#ef5350;border-color:#ef5350}
-.status-badge.status-warning{background:rgba(255,140,0,0.15);color:#ff8c00;border-color:#ff8c00}
-.footer{background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:white;padding:24px;text-align:center;margin-top:40px;border-top:4px solid #3498db}
+.status-badge.status-pass{background:rgba(22,163,74,0.15);color:#16a34a;border-color:#16a34a}
+.status-badge.status-critical{background:rgba(220,38,38,0.15);color:#dc2626;border-color:#dc2626}
+.status-badge.status-warning{background:rgba(217,119,6,0.15);color:#d97706;border-color:#d97706}
+.footer{background:linear-gradient(135deg,#1c2b2f 0%,#26424a 100%);color:white;padding:24px;text-align:center;margin-top:40px;border-top:4px solid #0f766e}
 .footer-inner{max-width:1400px;margin:0 auto}.footer-title{font-size:15px;font-weight:600;margin-bottom:8px}
 .footer-date{font-size:13px;color:#bdc3c7}
 .footer-disclaimer{font-size:12px;color:#95a5a6;margin-top:12px;max-width:920px;margin-left:auto;margin-right:auto;line-height:1.6}
@@ -5121,10 +5118,10 @@ body[data-theme='dark'] .evidence-modal .evidence-content{background:#0f172a}
 <body>
 <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">&#9776;</button>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-<aside class="sidebar" id="sidebar" aria-label="Section navigation"><div class="panel sidebar-shell"><div class="sidebar-header"><a class="sidebar-logo" href="#section-summary" onclick="scrollToSection('section-summary',null)"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div class="sidebar-brand-copy"><p class="sidebar-brand-kicker">Microsoft AD</p><h2 class="sidebar-brand-name">Active Directory Health Assessment</h2><p class="sidebar-brand-subtitle">__SIDEBAR_SUBTITLE__ forest review</p></div></a></div><div class="sidebar-body"><div class="sidebar-nav-wrap"><div class="sidebar-section-title">Navigation</div><div class="sidebar-menu"><nav class="sidebar-nav" id="categoryNav"><a class="sidebar-item active" href="#section-summary" onclick="scrollToSection('section-summary',this);return false;">Executive Summary</a><a class="sidebar-item" href="#section-categories" onclick="scrollToSection('section-categories',this);return false;">Category Scorecards</a>
+<aside class="sidebar" id="sidebar" aria-label="Section navigation"><div class="panel sidebar-shell"><div class="sidebar-header"><a class="sidebar-logo" href="#section-summary" onclick="scrollToSection('section-summary',null)"><div class="brand-mark" aria-hidden="true">AD</div><div class="sidebar-brand-copy"><p class="sidebar-brand-kicker">Directory Services</p><h2 class="sidebar-brand-name">Active Directory Health Assessment</h2><p class="sidebar-brand-subtitle">__SIDEBAR_SUBTITLE__ forest review</p></div></a></div><div class="sidebar-body"><div class="sidebar-nav-wrap"><div class="sidebar-section-title">Navigation</div><div class="sidebar-menu"><nav class="sidebar-nav" id="categoryNav"><a class="sidebar-item active" href="#section-summary" onclick="scrollToSection('section-summary',this);return false;">Executive Summary</a><a class="sidebar-item" href="#section-categories" onclick="scrollToSection('section-categories',this);return false;">Category Scorecards</a>
 __CATEGORY_NAV_ITEMS__
 <a class="sidebar-item" href="#section-detailed-findings" onclick="scrollToSection('section-detailed-findings',this);return false;">Detailed Findings</a><a class="sidebar-item" href="#section-scoring-methodology" onclick="scrollToSection('section-scoring-methodology',this);return false;">Understanding Your Score</a></nav></div></div><div class="sidebar-footer"></div></div></div></aside>
-<header class="topbar"><div class="topbar-inner"><div class="brand-row"><div class="brand"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><p class="eyebrow">Microsoft Active Directory</p><h1>Active Directory Health Assessment</h1><p>Forest: __TOPBAR_FOREST__ &nbsp;&middot;&nbsp; Domain: __TOPBAR_DOMAIN__ &nbsp;&middot;&nbsp; Assessor: __TOPBAR_ASSESSOR__</p></div></div><div class="meta-chip"><strong>Assessed:</strong>&nbsp;__TOPBAR_ASSESS_DATE__</div></div></div></header>
+<header class="topbar"><div class="topbar-inner"><div class="brand-row"><div class="brand"><div class="brand-mark" aria-hidden="true">AD</div><div><p class="eyebrow">Directory Services Assessment</p><h1>Active Directory Health Assessment</h1><p>Forest: __TOPBAR_FOREST__ &nbsp;&middot;&nbsp; Domain: __TOPBAR_DOMAIN__ &nbsp;&middot;&nbsp; Assessor: __TOPBAR_ASSESSOR__</p></div></div><div class="meta-chip"><strong>Assessed:</strong>&nbsp;__TOPBAR_ASSESS_DATE__</div></div></div></header>
 <main class="page"><section class="content"><section class="panel hero" id="section-summary"><h2>Executive Summary</h2>
 __WINMGMT_WARNING__
 <p>This assessment evaluates the Active Directory environment for forest <strong>__SUMMARY_FOREST__</strong> against health and security best practices. Review the scorecard below to understand coverage, identify high-impact gaps, and prioritize remediation.</p><div class="hero-grid"><div class="score-tile"><div class="score-ring" aria-label="Health score __OVERALL_SCORE_DISPLAY__ out of 100"><svg viewBox="0 0 176 176"><circle cx="88" cy="88" r="70" class="score-ring-bg"/><circle cx="88" cy="88" r="70" class="score-ring-fill" stroke="__OVERALL_SCORE_COLOR__" stroke-dasharray="439.82" stroke-dashoffset="__OVERALL_SCORE_OFFSET__"/></svg><div class="score-ring-text"><strong style="color:__OVERALL_SCORE_COLOR__">__OVERALL_SCORE_DISPLAY__%</strong><span>Health Score</span></div></div><div class="score-caption">Grade: <strong>__GRADE__</strong> &nbsp;&middot;&nbsp; Risk: <strong style="color:__OVERALL_SCORE_COLOR__">__RISK__</strong></div></div><div class="hero-copy"><h2>Forest: __HERO_FOREST__</h2><p>Domain: <strong>__HERO_DOMAIN__</strong><br>Assessed: <strong>__HERO_ASSESS_DATE__</strong><br>Assessor: <strong>__HERO_ASSESSOR__</strong> &nbsp;&middot;&nbsp; DCs: __DC_COUNT__ &nbsp;&middot;&nbsp; Sites: __SITE_COUNT__</p><div class="stats-grid"><div class="stat-card"><span class="label">Checks Run</span><span class="value">__TOTAL_CHECKS__</span></div><div class="stat-card success"><span class="label">Passed</span><span class="value">__PASS_COUNT__</span></div><div class="stat-card danger"><span class="label">Failed</span><span class="value">__FAIL_COUNT__</span></div><div class="stat-card warning"><span class="label">Warnings</span><span class="value">__WARN_COUNT__</span></div><div class="stat-card info"><span class="label">Info</span><span class="value">__INFO_COUNT__</span></div><div class="stat-card danger"><span class="label">Critical</span><span class="value">__CRITICAL_COUNT__</span></div></div></div></div></section><div style="text-align:right;margin-bottom:4px;"><button type="button" class="export-btn" onclick="exportAllToCsv()">&#128196; Export All to CSV</button></div><section class="panel section-card" id="section-categories"><div class="section-header"><div><h2>Category Scorecards</h2><p>Each card shows an AD health control area score and pass / fail / warn breakdown. Thresholds: <strong style="color:#10b981">&gt;80 green</strong>, <strong style="color:#f59e0b">50&ndash;80 amber</strong>, <strong style="color:#ef4444">&lt;50 red</strong>.</p></div><div class="legend"><span class="legend-item success">Pass</span><span class="legend-item danger">Fail</span><span class="legend-item warning">Warn</span></div></div><div class="category-card-grid" id="categoryCards"></div></section><div id="category-sections-container"></div><section class="panel section-card" id="section-detailed-findings"><div class="section-header"><div><h2>Detailed Findings</h2><p>All __TOTAL_CHECKS__ checks with status, finding, and remediation guidance.</p></div><button type="button" class="export-btn" onclick="exportSectionToCsv('section-detailed-findings')">&#128196; Export to CSV</button></div><div class="findings-table-wrap"><table id="findings-main-table"><thead><tr><th>Check ID</th><th>Category</th><th>Status</th><th>Finding</th><th>Recommendation</th><th>Details</th><th>User Override</th></tr></thead><tbody id="findings-tbody"></tbody></table></div></section><section class="panel section-card" id="section-scoring-methodology">
@@ -5179,7 +5176,7 @@ __WINMGMT_WARNING__
 </div>
 </section></section></main>
 <div class="evidence-modal-overlay" id="evidenceOverlay" onclick="closeEvidence(event)"><div class="evidence-modal" id="evidenceModal"><h3 id="evidenceTitle">Details</h3><div class="evidence-section"><div class="evidence-label">Details</div><div class="evidence-content" id="evidenceData"></div></div><div class="evidence-section"><div class="evidence-label">Reference</div><div class="evidence-content" id="evidenceRef"></div></div><div class="evidence-section"><div class="evidence-label">Query</div><div class="evidence-content" id="evidenceQuery"></div></div><button type="button" class="close-btn" onclick="closeEvidence()">Close</button></div></div>
-<footer class="footer"><div class="footer-inner"><div class="footer-title">Active Directory Health Assessment &ndash; __FOOTER_FOREST__</div><div class="footer-date">Report generated at __FOOTER_DATE__</div><div class="footer-disclaimer">This assessment reflects configuration state at the time of collection and should be reviewed alongside operational context, compensating controls, and Microsoft guidance before final risk decisions are made. Forest: __FOOTER_FOREST__ &nbsp;&middot;&nbsp; Assessor: __FOOTER_ASSESSOR__ &nbsp;&middot;&nbsp; Tool: AD HealthCheck</div></div></footer>
+<footer class="footer"><div class="footer-inner"><div class="footer-title">Active Directory Health Assessment &ndash; __FOOTER_FOREST__</div><div class="footer-date">Report generated at __FOOTER_DATE__</div><div class="footer-disclaimer">This assessment reflects configuration state at the time of collection and should be reviewed alongside operational context, compensating controls, and current vendor best-practice guidance before final risk decisions are made. Forest: __FOOTER_FOREST__ &nbsp;&middot;&nbsp; Assessor: __FOOTER_ASSESSOR__ &nbsp;&middot;&nbsp; Tool: AD HealthCheck</div></div></footer>
 <div class="regenerate-bar" id="regenerateBar"><div class="regen-info"><span>&#9888;&#65039; Overrides applied:</span><span class="regen-count" id="regenCount">0</span><span>findings marked by user</span></div><div><button type="button" class="regen-btn" onclick="regenerateReport()">&#9889; Regenerate Report</button><button type="button" class="regen-reset" onclick="resetOverrides()">Reset All</button></div></div>
 
   <script>
@@ -5189,7 +5186,7 @@ function statusClass(s){if(s==='Pass')return 'status-pass';if(s==='Fail')return 
 function scoreColor(s){if(s>80)return '#10b981';if(s>=50)return '#f59e0b';return '#ef4444';}
 function scoreOffset(s){return(175.93*(1-s/100)).toFixed(2);}
 function pillClass(s){if(s>80)return 'pill success';if(s>=50)return 'pill warning';return 'pill danger';}
-function renderCategoryCards(){var html='';for(var i=0;i<CATEGORIES.length;i++){var cat=CATEGORIES[i];var color=scoreColor(cat.score);var offset=scoreOffset(cat.score);html+='<div class="category-card"><div class="category-card-title">'+cat.name+'</div><div class="category-card-charts"><div class="category-chart-group"><svg width="80" height="80" viewBox="0 0 70 70" style="display:block;margin:0 auto;"><circle cx="35" cy="35" r="28" fill="none" stroke="#dbe5f0" stroke-width="8"/><circle cx="35" cy="35" r="28" fill="none" stroke="'+color+'" stroke-width="8" stroke-dasharray="175.93" stroke-dashoffset="'+offset+'" stroke-linecap="round" transform="rotate(-90 35 35)"/><text x="35" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="'+color+'">'+cat.score+'%</text></svg><div class="category-chart-detail"><span style="color:#107c10;font-weight:600">'+cat.pass+' pass</span> &middot; <span style="color:#d13438;font-weight:600">'+cat.fail+' fail</span> &middot; <span style="color:#ff8c00;font-weight:600">'+cat.warn+' warn</span></div></div></div></div>';}document.getElementById('categoryCards').innerHTML=html;}
+function renderCategoryCards(){var html='';for(var i=0;i<CATEGORIES.length;i++){var cat=CATEGORIES[i];var color=scoreColor(cat.score);var offset=scoreOffset(cat.score);html+='<div class="category-card"><div class="category-card-title">'+cat.name+'</div><div class="category-card-charts"><div class="category-chart-group"><svg width="80" height="80" viewBox="0 0 70 70" style="display:block;margin:0 auto;"><circle cx="35" cy="35" r="28" fill="none" stroke="#dbe5f0" stroke-width="8"/><circle cx="35" cy="35" r="28" fill="none" stroke="'+color+'" stroke-width="8" stroke-dasharray="175.93" stroke-dashoffset="'+offset+'" stroke-linecap="round" transform="rotate(-90 35 35)"/><text x="35" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="'+color+'">'+cat.score+'%</text></svg><div class="category-chart-detail"><span style="color:#16a34a;font-weight:600">'+cat.pass+' pass</span> &middot; <span style="color:#dc2626;font-weight:600">'+cat.fail+' fail</span> &middot; <span style="color:#d97706;font-weight:600">'+cat.warn+' warn</span></div></div></div></div>';}document.getElementById('categoryCards').innerHTML=html;}
 function renderMainTable(){var html='';for(var i=0;i<FINDINGS.length;i++){var r=FINDINGS[i];var overrideCell='';if(r[3]!=='Pass'){overrideCell='<select class="override-select" data-idx="'+i+'" onchange="markOverride(this)"><option value="">—</option><option value="Mitigated">Mitigated</option><option value="False Positive">False Positive</option><option value="Accept Risk">Accept Risk</option></select>';}else{overrideCell='<span class="override-na">—</span>';}html+='<tr><td><code>'+r[0]+'</code></td><td>'+r[2]+'</td><td><span class="status-badge '+statusClass(r[3])+'">'+r[3]+'</span></td><td class="wrap">'+r[4]+'</td><td class="wrap">'+r[5]+'</td><td><a href="#" class="evidence-link" onclick="showEvidence('+i+');return false;">View Details</a></td><td>'+overrideCell+'</td></tr>';}document.getElementById('findings-tbody').innerHTML=html;}
 function renderCategorySections(){var container=document.getElementById('category-sections-container');var sectionsHtml='';for(var i=0;i<CATEGORIES.length;i++){var cat=CATEGORIES[i];var collapsibleId='collapsible-'+cat.id;var rows=FINDINGS.filter(function(r){return r[1]===cat.id;});sectionsHtml+='<section class="detail-section" id="section-'+cat.id+'" data-section="'+cat.id+'"><div class="detail-section-header"><h2>'+cat.fullName+'</h2><button type="button" class="export-btn" onclick="exportSectionToCsv(\'section-'+cat.id+'\')">&#128196; Export to CSV</button></div><div class="detail-meta"><span class="pill success">&#10004; Pass: '+cat.pass+'</span><span class="pill danger">&#10060; Fail: '+cat.fail+'</span><span class="pill warning">&#9888; Warn: '+cat.warn+'</span><span class="'+pillClass(cat.score)+'" style="font-weight:700">Score: '+cat.score+'%</span><span class="pill info">Total: '+cat.total+' checks</span></div><div class="policy-collapsible" id="'+collapsibleId+'"><div class="policy-header" onclick="togglePolicy(\''+collapsibleId+'\')"><span class="policy-toggle-icon">&#9660;</span><span class="policy-title">All Findings</span><span class="pill info" style="margin-left:auto">'+rows.length+' rows</span></div><div class="policy-content"><div class="findings-table-wrap"><table class="findings-cat-table"><thead><tr><th>Check ID</th><th>Status</th><th>Finding</th><th>Recommendation</th><th>Details</th><th>User Override</th></tr></thead><tbody id="findings-tbody-'+cat.id+'"></tbody></table></div></div></div></section>';}container.innerHTML=sectionsHtml;for(var j=0;j<CATEGORIES.length;j++){var cat2=CATEGORIES[j];var catRows=FINDINGS.filter(function(r){return r[1]===cat2.id;});var tbHtml='';for(var k=0;k<catRows.length;k++){var row=catRows[k];var idx=FINDINGS.indexOf(row);var overrideCell='';if(row[3]!=='Pass'){overrideCell='<select class="override-select" data-idx="'+idx+'" onchange="markOverride(this)"><option value="">—</option><option value="Mitigated">Mitigated</option><option value="False Positive">False Positive</option><option value="Accept Risk">Accept Risk</option></select>';}else{overrideCell='<span class="override-na">—</span>';}tbHtml+='<tr><td><code>'+row[0]+'</code></td><td><span class="status-badge '+statusClass(row[3])+'">'+row[3]+'</span></td><td>'+row[4]+'</td><td>'+row[5]+'</td><td><a href="#" class="evidence-link" onclick="showEvidence('+idx+');return false;">View Details</a></td><td>'+overrideCell+'</td></tr>';}var tbEl=document.getElementById('findings-tbody-'+cat2.id);if(tbEl)tbEl.innerHTML=tbHtml;}}
 function exportSectionToCsv(sectionId){var section=document.getElementById(sectionId);if(!section)return;var tables=section.querySelectorAll('table');if(tables.length===0)return;var csvRows=[];var headerAdded=false;var evidenceColIdx=-1;for(var t=0;t<tables.length;t++){var rows=tables[t].querySelectorAll('tr');for(var i=0;i<rows.length;i++){var cells=rows[i].querySelectorAll('th, td');if(cells.length===0)continue;if(rows[i].querySelectorAll('th').length>0){if(!headerAdded){var headerData=[];for(var j=0;j<cells.length;j++){if(cells[j].innerText.trim().toLowerCase()==='details'){evidenceColIdx=j;continue;}headerData.push('"'+cells[j].innerText.replace(/"/g,'""').trim()+'"');}csvRows.push(headerData.join(','));headerAdded=true;}continue;}var rowData=[];for(var j=0;j<cells.length;j++){if(j===evidenceColIdx)continue;var text=cells[j].innerText.replace(/"/g,'""').replace(/\n/g,' ').trim();rowData.push('"'+text+'"');}csvRows.push(rowData.join(','));}}if(csvRows.length===0)return;var csvContent='\uFEFF'+csvRows.join('\n');var blob=new Blob([csvContent],{type:'text/csv;charset=utf-8;'});var link=document.createElement('a');var titleEl=section.querySelector('h2, h3');var fileName=((titleEl?titleEl.innerText:sectionId).replace(/[^a-z0-9]/gi,'_'))+'.csv';link.href=URL.createObjectURL(blob);link.download=fileName;link.style.display='none';document.body.appendChild(link);link.click();document.body.removeChild(link);}
